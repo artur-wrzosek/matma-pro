@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Events - Matma Project{% endblock %}
+
+{% block content %}
+<h1>Event List</h1>
+<ul>
+    {% for event in events %}
+        <li>
+            <a href="{% url 'events:detail' event.id %}">{{ event.name }}</a>
+            <p>{{ event.description }}</p>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

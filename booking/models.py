@@ -7,27 +7,26 @@ class CreatedMixin:
 
 class BaseUser(CreatedMixin, AbstractUser):
     created_by = models.ManyToManyField("self")
-    phone = models.PositiveIntegerField(primary_key=True)
+    phone = models.PositiveIntegerField(unique=True, default=123456789)
     phone_prefix = models.CharField(max_length=4, default="+48")
 
-    class Meta:
-        abstract = True
 
 class BaseModel(CreatedMixin, models.Model):
     name = models.CharField(max_length=150, unique=True)
+    created_by = models.ForeignKey(BaseUser, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         abstract = True
 
 class School(BaseModel):
-    class SchoolType:
+    class SchoolType(models.TextChoices):
         PRE = "preschool", _("Przedszkole")
         PRIMARY = "primary", _("Szkoła Podstawowa")
         HIGH = "high", _("Liceum")
         TECH = "tech", _("Technikum")
         COLLEGE = "college", _("Uczelnia Wyższa")
 
-    type = models.CharField(choices=SchoolType, blank=True)
+    type = models.CharField(max_length=30, choices=SchoolType, blank=True)
 
 class Student(BaseUser):
     grade = models.PositiveSmallIntegerField()
@@ -48,14 +47,15 @@ class Payment(BaseModel):
 
     is_paid = models.BooleanField(default=False)
     payment_dt = models.DateTimeField(null=True)
-    payer = models.ManyToManyField(Parent)
-    method = models.CharField(choices=Method, max_length=30)
+    payer = models.ManyToManyField(Parent, related_name="payments")
+    method = models.CharField(choices=Method.choices, max_length=30)
+
 
 
 class Event(models.Model):
     event_dt = models.DateTimeField()
     online_url = models.URLField(null=True)
-    subject = models.ManyToManyField(Subject)
+    subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True)
     extended_level = models.BooleanField(default=False)
     payment = models.OneToOneField(Payment, on_delete=models.SET_NULL, null=True)
     notes = models.TextField(blank=True)
